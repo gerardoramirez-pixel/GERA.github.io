@@ -1,0 +1,1961 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="icon" type="image/x-icon" href="icon.ico">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ffed00" />
+  <title>Control FAB | Kärcher Professional</title>
+  <style>
+    :root{
+      --yellow:#ffed00;
+      --yellow-2:#f3db00;
+      --bg:#05070b;
+      --bg-2:#090d14;
+      --panel:rgba(14,19,28,.90);
+      --panel-2:rgba(19,25,38,.96);
+      --line:rgba(255,255,255,.08);
+      --text:#f4f7fb;
+      --muted:#a7b0c0;
+      --good:#67e8a6;
+      --warn:#f6c142;
+      --bad:#ff6b6b;
+      --shadow:0 30px 80px rgba(0,0,0,.55);
+      --r-1:18px;
+      --r-2:24px;
+      --r-3:34px;
+      --focus:0 0 0 4px rgba(255,237,0,.12);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%}
+    body{
+      font-family:Inter, Segoe UI, system-ui, -apple-system, Arial, sans-serif;
+      color:var(--text);
+      overflow:hidden;
+      background:
+        radial-gradient(circle at top left, rgba(255,237,0,.12), transparent 22%),
+        radial-gradient(circle at top right, rgba(89,214,255,.08), transparent 20%),
+        linear-gradient(180deg, #030409, #0a0e16 52%, #06070b);
+    }
+    button,input,select,textarea{font:inherit}
+    a{color:inherit}
+    .shell{height:100%;display:flex;flex-direction:column;min-width:0}
+    .topbar{
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      align-items:stretch;
+      gap:0;
+      height:96px;
+      background:rgba(0,0,0,.62);
+      border-bottom:1px solid rgba(255,255,255,.08);
+      backdrop-filter: blur(16px);
+      position:relative;
+      z-index:40;
+      min-width:0;
+    }
+    .brand{
+      display:flex;align-items:center;gap:14px;
+      padding:0 20px;
+      min-width:290px;
+      background:linear-gradient(90deg, var(--yellow), #fff36f);
+      color:#111;
+    }
+    .brand-logo{
+      width:58px;height:58px;border-radius:18px;
+      object-fit:contain;
+      background:#111;
+      padding:8px;
+      box-shadow:inset 0 0 0 2px rgba(255,237,0,.26);
+      display:block;
+      flex:0 0 auto;
+    }
+    .brand-fallback{
+      width:58px;height:58px;border-radius:18px;
+      display:grid;place-items:center;
+      background:#111;color:var(--yellow);
+      font-weight:1000;font-size:1.5rem;
+      box-shadow:inset 0 0 0 2px rgba(255,237,0,.26);
+      flex:0 0 auto;
+    }
+    .brand-text h1{margin:0;font-size:1.02rem;line-height:1.05;font-weight:1000;letter-spacing:.45px;text-transform:uppercase}
+    .brand-text small{display:block;font-size:.78rem;opacity:.88;font-weight:800}
+    .top-center{
+      display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+      padding:0 16px;
+      min-width:0;
+    }
+    .status-pill{
+      display:inline-flex;align-items:center;gap:10px;
+      padding:11px 15px;border-radius:999px;
+      background:rgba(255,255,255,.045);
+      border:1px solid rgba(255,255,255,.09);
+      color:var(--muted);
+      white-space:nowrap;
+      min-width:0;
+    }
+    .dot{width:10px;height:10px;border-radius:50%}
+    .dot.ok{background:var(--good);box-shadow:0 0 18px rgba(103,232,166,.45)}
+    .dot.bad{background:var(--bad);box-shadow:0 0 18px rgba(255,107,107,.45)}
+    .dot.warn{background:var(--warn);box-shadow:0 0 18px rgba(246,193,66,.45)}
+    .datebox{
+      text-align:right;padding:14px 20px;display:flex;flex-direction:column;justify-content:center;gap:4px;
+      min-width:220px;
+    }
+    #full-date{font-size:.92rem;color:var(--yellow);text-transform:uppercase;letter-spacing:.65px;font-weight:900}
+    #clock{font-size:2rem;font-weight:1000;line-height:1;font-variant-numeric:tabular-nums}
+    .main{
+      flex:1;min-height:0;
+      display:grid;
+      grid-template-columns:minmax(0,1.55fr) minmax(340px,1fr);
+      gap:18px;
+      padding:18px;
+    }
+    .panel{
+      background:var(--panel);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--r-3);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      min-width:0;
+      min-height:0;
+      position:relative;
+    }
+
+    /* HERO / CAROUSEL */
+    .hero{display:flex;flex-direction:column;min-height:0}
+    .carousel{position:relative;flex:1;min-height:0;overflow:hidden}
+    .track{
+      height:100%;
+      display:flex;
+      transform:translateX(0);
+      transition:transform .7s cubic-bezier(.7,0,.2,1);
+      will-change:transform;
+    }
+    .slide{
+      min-width:100%;height:100%;
+      position:relative;
+      display:flex;align-items:center;justify-content:center;
+      padding:28px;
+      background:#0a0d12;
+      isolation:isolate;
+    }
+    .slide::before{
+      content:"";
+      position:absolute;inset:0;
+      background:
+        linear-gradient(180deg, rgba(2,3,6,.28), rgba(2,3,6,.68)),
+        radial-gradient(circle at 50% 18%, rgba(255,237,0,.16), transparent 40%);
+      z-index:0;
+    }
+    .slide-bg{
+      position:absolute;inset:0;
+      background-size:cover;
+      background-position:center;
+      transform:scale(1.03);
+      filter:saturate(1.02) contrast(1.02);
+      opacity:.95;
+      z-index:-1;
+    }
+    .slide-content{
+      position:relative;
+      z-index:2;
+      width:min(780px,100%);
+      text-align:center;
+      padding:28px 18px;
+      background:linear-gradient(180deg, rgba(6,8,12,.30), rgba(6,8,12,.12));
+      border:1px solid rgba(255,255,255,.05);
+      border-radius:30px;
+      backdrop-filter: blur(3px);
+    }
+    .hero-ico{
+      width:112px;height:112px;border-radius:32px;
+      margin:0 auto 18px;
+      display:grid;place-items:center;
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:0 18px 36px rgba(0,0,0,.35);
+      overflow:hidden;
+    }
+    .hero-ico img{width:70px;height:70px;object-fit:contain;display:block}
+    .slide h2{margin:0 0 8px;font-size:clamp(2rem,4vw,4.3rem);line-height:1;font-weight:1000;letter-spacing:1px}
+    .slide p{margin:0 0 20px;color:#d2d8e3;font-size:1.08rem}
+    .cta-row{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+    .btn{
+      border:none;cursor:pointer;transition:.2s ease;
+      border-radius:18px;padding:15px 20px;font-weight:1000;letter-spacing:.35px;
+      min-height:52px;
+    }
+    .btn:active{transform:translateY(1px) scale(.99)}
+    .btn-primary{background:var(--yellow);color:#111;box-shadow:0 12px 28px rgba(0,0,0,.34)}
+    .btn-primary:hover{background:#fff36f}
+    .btn-secondary{background:rgba(255,255,255,.06);color:var(--text);border:1px solid rgba(255,255,255,.09)}
+    .btn-secondary:hover{background:rgba(255,255,255,.10)}
+    .nav-arrow{
+      position:absolute;top:50%;transform:translateY(-50%);
+      width:60px;height:60px;border-radius:50%;
+      display:grid;place-items:center;
+      z-index:10;
+      font-size:2rem;font-weight:1000;
+      color:#fff;border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.28);
+      backdrop-filter: blur(8px);
+      cursor:pointer;
+      transition:.2s ease;
+    }
+    .nav-arrow:hover{background:var(--yellow);color:#111}
+    .nav-left{left:16px}.nav-right{right:16px}
+    .progress{
+      position:absolute;left:0;bottom:0;height:7px;width:0%;
+      background:linear-gradient(90deg,var(--yellow),#fff7a0);
+      z-index:12;
+    }
+
+    /* SIDE PANEL */
+    .side{
+      display:grid;
+      grid-template-rows:auto 1fr auto;
+      gap:14px;
+      padding:18px;
+      min-height:0;
+    }
+    .section-title{
+      margin:0;color:var(--yellow);
+      font-size:1rem;text-transform:uppercase;
+      letter-spacing:1px;font-weight:1000;
+    }
+    .grid-shortcuts{
+      display:grid;grid-template-columns:repeat(2,1fr);gap:14px;
+      min-height:0;
+    }
+    .tile{
+      min-height:126px;
+      border-radius:24px;
+      padding:16px 14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025));
+      border:1px solid rgba(255,255,255,.09);
+      color:var(--text);
+      cursor:pointer;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+      text-align:center;
+      transition:.22s ease;
+      min-width:0;
+    }
+    .tile:hover{
+      transform:translateY(-3px);
+      border-color:rgba(255,237,0,.55);
+      background:rgba(255,255,255,.08);
+    }
+    .tile .ico{width:32px;height:32px;display:grid;place-items:center}
+    .tile .ico img{width:32px;height:32px;object-fit:contain;display:block}
+    .tile strong{font-size:.98rem;text-transform:uppercase;letter-spacing:.45px}
+    .tile span{color:var(--muted);font-size:.86rem}
+    .tile.mail{border-color:rgba(255,107,107,.32)}
+    .tile.mail strong{color:#ff8d8d}
+    .tile.mail:hover{border-color:rgba(255,107,107,.75)}
+    .footer-card{
+      background:linear-gradient(180deg, rgba(255,237,0,.12), rgba(255,237,0,.06));
+      border:1px solid rgba(255,237,0,.14);
+      border-radius:24px;
+      padding:16px;
+      display:grid;
+      gap:10px;
+    }
+    .footer-card .mini{
+      display:flex;justify-content:space-between;align-items:center;gap:10px;
+      color:var(--muted);font-size:.92rem;
+    }
+    .footer-card .mini b{color:var(--text)}
+    .footer-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+    /* MODALS */
+    .overlay{
+      position:fixed;inset:0;
+      background:rgba(0,0,0,.82);
+      backdrop-filter: blur(16px);
+      z-index:100;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .dialog{
+      width:min(1260px,100%);
+      max-height:92vh;
+      overflow:auto;
+      background:linear-gradient(180deg, rgba(7,10,15,.98), rgba(12,16,24,.97));
+      border:1px solid rgba(255,237,0,.25);
+      border-radius:34px;
+      box-shadow:var(--shadow);
+      position:relative;
+      padding:22px;
+    }
+    .dialog-header{
+      display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px;
+    }
+    .dialog-header h3{
+      margin:0;
+      font-size:clamp(1.5rem, 2.2vw, 2.4rem);
+      color:var(--yellow);
+      font-weight:1000;
+    }
+    .dialog-header p{margin:6px 0 0;color:var(--muted)}
+    .close{
+      border:none;background:transparent;color:#8c93a2;
+      font-size:2.4rem;line-height:1;cursor:pointer;padding:0 8px;
+    }
+    .close:hover{color:#fff}
+    .hidden{display:none !important}
+
+    .dialog-grid{display:grid;gap:14px}
+    .choices{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .choice{
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:24px;
+      min-height:118px;
+      padding:16px 14px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+      cursor:pointer;text-align:center;transition:.2s ease;color:#fff !important;
+    }
+    .choice:hover{
+      transform:translateY(-2px);
+      border-color:rgba(255,237,0,.6);
+      background:rgba(255,255,255,.07);
+    }
+    .choice.active{
+      background:rgba(255,237,0,.16);
+      border-color:rgba(255,237,0,.7);
+    }
+    .choice .big{font-size:2.05rem}
+    .choice .label{
+      font-size:1.02rem;
+      font-weight:1000;
+      text-transform:uppercase;
+      letter-spacing:.45px;
+      color:#fff !important
+    }
+    .choice .sub{font-size:.85rem;color:#a8b0c0 !important}
+
+    .card{
+      background:rgba(255,255,255,.035);
+      border:1px solid rgba(255,255,255,.085);
+      border-radius:26px;
+      padding:16px;
+    }
+    .card h4{
+      margin:0 0 10px;
+      font-size:1.02rem;
+      color:var(--yellow);
+      text-transform:uppercase;
+      letter-spacing:.7px;
+    }
+    .input{
+      width:100%;
+      border:none;outline:none;
+      color:var(--text);
+      background:#0a0f18;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      padding:15px 16px;
+    }
+    .input:focus{border-color:rgba(255,237,0,.55);box-shadow:var(--focus)}
+
+    .stepper{
+      display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px
+    }
+    .step{
+      padding:10px 12px;border-radius:999px;
+      background:rgba(255,255,255,.05);
+      color:var(--muted);
+      border:1px solid rgba(255,255,255,.08);
+      font-weight:900;
+    }
+    .step.on{
+      background:rgba(255,237,0,.18);
+      color:#fff;
+      border-color:rgba(255,237,0,.45);
+    }
+
+    .summary{
+      border:1px dashed rgba(255,237,0,.30);
+      border-radius:20px;
+      padding:14px;
+      background:rgba(255,255,255,.025);
+      line-height:1.55;
+      color:#dce1ea;
+      min-height:160px;
+    }
+    .summary b{color:#fff}
+    .small{font-size:.9rem;color:var(--muted)}
+
+    .report-grid{
+      display:grid;
+      grid-template-columns:minmax(0,1.2fr) minmax(360px,.8fr);
+      gap:14px;
+      align-items:start;
+      margin-bottom:14px;
+    }
+    .report-stack{display:grid;gap:14px;min-width:0}
+    .report-card{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:28px;
+      padding:18px;
+      box-shadow:0 16px 40px rgba(0,0,0,.22);
+      min-width:0;
+    }
+    .report-card-part{border-color:rgba(255,237,0,.18)}
+    .report-card-employee{border-color:rgba(89,214,255,.18)}
+    .report-card-keypad{border-color:rgba(255,237,0,.20)}
+    .report-card-severity{border-color:rgba(103,232,166,.16)}
+    .report-card-summary{border-color:rgba(255,255,255,.10)}
+    .report-head{
+      display:flex;align-items:center;gap:12px;margin-bottom:14px;
+    }
+    .step-badge{
+      width:40px;height:40px;border-radius:14px;
+      display:grid;place-items:center;
+      background:linear-gradient(180deg, var(--yellow), #ffe84e);
+      color:#111;font-weight:1000;
+      box-shadow:0 10px 20px rgba(0,0,0,.18);
+      flex:0 0 auto;
+    }
+    .report-title-wrap{min-width:0}
+    .report-title-wrap h4{margin:0 0 2px;font-size:1.12rem;font-weight:1000;color:#fff}
+    .report-sub{margin:0;color:var(--muted);font-size:.92rem;line-height:1.35}
+    .field-shell{
+      display:flex;align-items:center;gap:12px;
+      background:#05070c;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:22px;
+      padding:14px 16px;
+      transition:.2s ease;
+    }
+    .field-shell:focus-within{
+      border-color:rgba(255,237,0,.55);
+      box-shadow:var(--focus);
+    }
+    .field-icon{
+      width:46px;height:46px;border-radius:16px;
+      display:grid;place-items:center;
+      background:rgba(255,237,0,.12);
+      border:1px solid rgba(255,237,0,.18);
+      font-size:1.2rem;
+      flex:0 0 auto;
+      cursor:pointer;
+      transition:.2s ease;
+    }
+    .field-icon:hover{transform:scale(1.08);background:rgba(255,237,0,.22)}
+    .input-part,
+    .input-employee{
+      width:100%;
+      background:transparent;
+      border:none;
+      outline:none;
+      color:var(--text);
+      padding:0;
+      min-width:0;
+    }
+    .input-part{
+      font-size:clamp(1.35rem, 2.3vw, 1.8rem);
+      font-weight:1000;
+      letter-spacing:.4px;
+    }
+    .input-employee{
+      font-size:clamp(1.2rem, 2vw, 1.55rem);
+      font-weight:1000;
+      text-align:center;
+      letter-spacing:.4px;
+    }
+    .input-part::placeholder,.input-employee::placeholder{color:#7f8898;opacity:1}
+    .part-results{
+      margin-top:12px;
+      display:grid;
+      gap:8px;
+      max-height:260px;
+      overflow:auto;
+    }
+    .result-item{
+      display:flex;justify-content:space-between;align-items:center;gap:12px;
+      padding:12px 14px;border-radius:16px;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      cursor:pointer;color:#fff;
+      transition:.2s ease;
+    }
+    .result-item:hover{
+      background:rgba(255,237,0,.16);
+      border-color:rgba(255,237,0,.45);
+      transform:translateY(-1px);
+    }
+    .result-item b{display:block;font-size:1rem}
+    .result-item small{display:block;color:var(--muted)}
+    .keypad-top{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:12px;
+      align-items:center;
+      margin-bottom:12px;
+    }
+    .pillbar{display:flex;gap:8px;flex-wrap:wrap}
+    .pill{
+      border:none;background:rgba(255,255,255,.06);color:var(--text);
+      padding:11px 14px;border-radius:999px;cursor:pointer;font-weight:900;
+      border:1px solid rgba(255,255,255,.08)
+    }
+    .pill:hover{background:rgba(255,255,255,.1)}
+    .pill.sel{background:rgba(255,237,0,.18);border-color:rgba(255,237,0,.6);color:#fff}
+    .value-panel{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 220px;
+      gap:12px;
+      align-items:stretch;
+      margin-bottom:14px;
+    }
+    .value-box{
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:22px;
+      padding:16px;
+      min-width:0;
+    }
+    .value-label{
+      color:var(--yellow);
+      text-transform:uppercase;
+      font-size:.78rem;
+      letter-spacing:.8px;
+      font-weight:1000;
+      margin-bottom:8px;
+    }
+    .value-main{
+      font-size:clamp(1.45rem, 2.4vw, 2.05rem);
+      font-weight:1000;
+      line-height:1.1;
+      word-break:break-word;
+    }
+    .value-hint{color:var(--muted);margin-top:8px;font-size:.92rem;line-height:1.35}
+    .help-box{
+      background:linear-gradient(180deg, rgba(255,237,0,.12), rgba(255,237,0,.05));
+      border:1px solid rgba(255,237,0,.16);
+      border-radius:22px;
+      padding:16px;
+      display:flex;flex-direction:column;justify-content:center;gap:8px;
+      min-height:100%;
+    }
+    .help-box .small{color:var(--muted);line-height:1.45}
+    .pad-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .pad-key{
+      border:none;background:rgba(255,255,255,.08);color:#fff;border-radius:16px;
+      padding:16px 0;font-size:1.15rem;font-weight:1000;cursor:pointer;
+      transition:.2s ease;
+    }
+    .pad-key:hover{background:rgba(255,255,255,.14);transform:translateY(-1px)}
+    .pad-key.warn{background:rgba(255,107,107,.14);border:1px solid rgba(255,107,107,.35)}
+    .pad-key.ok{background:rgba(255,237,0,.9);color:#111}
+    .live-mini{
+      display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      margin-top:10px;color:var(--muted);font-size:.88rem
+    }
+    .label-pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 10px;border-radius:999px;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      color:#fff;font-weight:900;
+    }
+
+    .severity-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+    }
+    .sev{
+      border:none;
+      border-radius:16px;
+      padding:15px 12px;
+      font-weight:1000;
+      cursor:pointer;
+      color:#111;
+      opacity:.35;
+      transition:.2s ease;
+      min-height:58px;
+    }
+    .sev.active{
+      opacity:1;
+      transform:translateY(-1px) scale(1.01);
+      box-shadow:0 10px 20px rgba(0,0,0,.18);
+    }
+    .sev-low{background:#55d46a}
+    .sev-med{background:#f7e03a}
+    .sev-high{background:#ffa52c}
+    .sev-crit{background:#ff5c5c}
+    .sev.inactive{
+      background:#3c3f45 !important;
+      color:#dbe0e8 !important;
+      border:1px solid rgba(255,255,255,.06);
+    }
+
+    .submit-row{
+      display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;
+    }
+    .submit-row .btn{
+      flex:1 1 220px;padding:16px 18px;font-size:1.02rem
+    }
+
+    .config-status{font-size:.82rem;color:var(--muted)}
+    .report-layout{display:block;gap:14px}
+    .report-card-summary .summary-box{
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:22px;
+      padding:16px;
+    }
+    .report-steps{
+      display:grid;
+      gap:14px;
+    }
+    .report-substep{
+      background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:26px;
+      padding:18px;
+    }
+
+    .footer-note{font-size:.82rem;color:var(--muted);line-height:1.35}
+
+    .modal-config-grid{
+      display:grid;
+      gap:14px;
+    }
+    .modal-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .modal-row-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .modal-row-2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+
+    .hidden-iframe{display:none;width:0;height:0;border:0}
+
+    @media (max-width: 1180px){
+      .main{grid-template-columns:1fr}
+      .report-grid{grid-template-columns:1fr}
+      .value-panel{grid-template-columns:1fr}
+      .topbar{height:auto;grid-template-columns:1fr}
+      .brand{min-width:0;padding:14px 18px}
+      .datebox{text-align:left;padding:0 18px 14px;min-width:0}
+      .top-center{padding:0 18px 14px}
+      .side{padding-top:0}
+      .choices{grid-template-columns:1fr 1fr}
+      .modal-row,.modal-row-2,.modal-row-3{grid-template-columns:1fr}
+      .severity-grid{grid-template-columns:1fr 1fr}
+    }
+    @media (max-width: 760px){
+      body{overflow:auto}
+      .nav-arrow{display:none}
+      .grid-shortcuts{grid-template-columns:1fr}
+      .choices{grid-template-columns:1fr}
+      .slide{padding:14px}
+      .slide-content{padding:18px 14px;border-radius:22px}
+      .hero-ico{width:92px;height:92px;border-radius:26px}
+      .hero-ico img{width:58px;height:58px}
+      .dialog{padding:16px;border-radius:24px}
+      .pad-grid{gap:8px}
+      .pad-key{padding:14px 0}
+      .severity-grid{grid-template-columns:1fr 1fr}
+      .report-grid{gap:12px}
+      .keypad-top{grid-template-columns:1fr}
+    }
+    @media (prefers-reduced-motion: reduce){
+      *,*::before,*::after{animation:none !important;transition:none !important;scroll-behavior:auto !important}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <img class="brand-logo" id="brandLogo" src="icons/karcher_logo.png" alt="Kärcher" onerror="this.style.display='none'; document.getElementById('brandFallback').style.display='grid';" />
+        <div class="brand-fallback" id="brandFallback" style="display:none">K</div>
+        <div class="brand-text">
+          <h1>Control FAB</h1>
+          <small>Kärcher Professional</small>
+        </div>
+      </div>
+      <div class="top-center">
+        <div class="status-pill" id="connPill"><span class="dot warn" id="connDot"></span><span id="connText">Verificando conexión</span></div>
+        <div class="status-pill"><span class="dot ok"></span><span id="partsText">Base de partes lista</span></div>
+        <div class="status-pill"><span class="dot ok"></span><span id="queueText">0 reportes pendientes</span></div>
+      </div>
+      <div class="datebox">
+        <div id="full-date">...</div>
+        <div id="clock">00:00:00</div>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="panel hero">
+        <div class="carousel">
+          <button class="nav-arrow nav-left" id="prevBtn" aria-label="Anterior">‹</button>
+          <button class="nav-arrow nav-right" id="nextBtn" aria-label="Siguiente">›</button>
+          <div class="track" id="track">
+            <article class="slide" data-title="VSCREEN">
+              <div class="slide-bg" style="background-image:url('images/placeholder-vscreen.jpg')"></div>
+              <div class="slide-content">
+                <div class="hero-ico"><img src="icons/vscreen.png" alt="VScreen" onerror="this.closest('.hero-ico').innerHTML='👤'"></div>
+                <h2>VSCREEN</h2>
+                <p>Identificación de personal en piso. Un toque y listo.</p>
+                <div class="cta-row">
+                  <button class="btn btn-primary" onclick="goLink('vscreen')">ACCEDER</button>
+                  <button class="btn btn-secondary" onclick="toast('VScreen se abre en otra pestaña.')">INFO</button>
+                </div>
+              </div>
+            </article>
+            <article class="slide" data-title="BACKFLUSH">
+              <div class="slide-bg" style="background-image:url('images/placeholder-backflush.jpg')"></div>
+              <div class="slide-content">
+                <div class="hero-ico"><img src="icons/backflush.png" alt="Backflush" onerror="this.closest('.hero-ico').innerHTML='🏭'"></div>
+                <h2>BACKFLUSH</h2>
+                <p>Elegir área y entrar directo a la pantalla correcta.</p>
+                <div class="cta-row">
+                  <button class="btn btn-primary" onclick="openBackflush()">ELEGIR ÁREA</button>
+                </div>
+              </div>
+            </article>
+            <article class="slide" data-title="ORDENES">
+              <div class="slide-bg" style="background-image:url('images/placeholder-ordenes.jpg')"></div>
+              <div class="slide-content">
+                <div class="hero-ico"><img src="icons/ordenes.png" alt="Ordenes" onerror="this.closest('.hero-ico').innerHTML='🧾'"></div>
+                <h2>ÓRDENES</h2>
+                <p>Reporte rápido cuando una orden no está cargada.</p>
+                <div class="cta-row">
+                  <button class="btn btn-primary" onclick="goLink('ordenes')">REPORTAR</button>
+                </div>
+              </div>
+            </article>
+            <article class="slide" data-title="N. PARTE">
+              <div class="slide-bg" style="background-image:url('images/placeholder-partes.jpg')"></div>
+              <div class="slide-content">
+                <div class="hero-ico"><img src="icons/partes.png" alt="Partes" onerror="this.closest('.hero-ico').innerHTML='🔎'"></div>
+                <h2>NÚMEROS PARTE</h2>
+                <p>Consulta instantánea de números de parte y trazabilidad.</p>
+                <div class="cta-row">
+                  <button class="btn btn-primary" onclick="openPartsSheet()">ABRIR HOJA</button>
+                </div>
+              </div>
+            </article>
+            <article class="slide" data-title="REVISIONES">
+              <div class="slide-bg" style="background-image:url('images/placeholder-ordenes.jpg')"></div>
+              <div class="slide-content">
+                <div class="hero-ico"><img src="icons/revision.png" alt="Revision" onerror="this.closest('.hero-ico').innerHTML='🛠️'"></div>
+                <h2>REVISIONES</h2>
+                <p>Atajos directos para revisión y validación rápida.</p>
+                <div class="cta-row">
+                  <button class="btn btn-primary" onclick="goLink('revisiones')">ABRIR</button>
+                </div>
+              </div>
+            </article>
+          </div>
+          <div class="progress" id="progress"></div>
+        </div>
+      </section>
+
+      <aside class="panel side">
+        <div>
+          <h2 class="section-title">Accesos rápidos</h2>
+          <div style="height:12px"></div>
+          <div class="grid-shortcuts">
+            <button class="tile" onclick="goLink('vscreen')">
+              <div class="ico"><img src="icons/vscreen.png" alt="VScreen" onerror="this.outerHTML='👤'"></div>
+              <strong>VScreen</strong>
+              <span>Identificar persona</span>
+            </button>
+            <button class="tile" onclick="openBackflush()">
+              <div class="ico"><img src="icons/backflush.png" alt="Backflush" onerror="this.outerHTML='🏭'"></div>
+              <strong>Backflush</strong>
+              <span>Elegir área</span>
+            </button>
+            <button class="tile" onclick="goLink('ordenes')">
+              <div class="ico"><img src="icons/ordenes.png" alt="Órdenes" onerror="this.outerHTML='🧾'"></div>
+              <strong>Órdenes</strong>
+              <span>Reporte</span>
+            </button>
+            <button class="tile" onclick="openPartsSheet()">
+              <div class="ico"><img src="icons/partes.png" alt="Partes" onerror="this.outerHTML='🔎'"></div>
+              <strong>N. Parte</strong>
+              <span>Buscar</span>
+            </button>
+            <button class="tile" onclick="goLink('revisiones')">
+              <div class="ico"><img src="icons/revision.png" alt="Revisiones" onerror="this.outerHTML='🛠️'"></div>
+              <strong>Revisiones</strong>
+              <span>Control</span>
+            </button>
+            <button class="tile mail" onclick="openReport()">
+              <div class="ico">📨</div>
+              <strong>Reportar problema</strong>
+              <span>Enviar a Forms</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="footer-card">
+          <div class="mini"><span>Modo</span><b id="modeText">Kiosk / Piso</b></div>
+          <div class="mini"><span>Última sincronización</span><b id="syncText">—</b></div>
+          <div class="mini"><span>Partes cargadas</span><b id="partsCount">0</b></div>
+          <div class="mini"><span>Estado</span><b id="configStatus" class="config-status">Configurando</b></div>
+          <div class="footer-actions">
+            <button class="btn btn-secondary" style="padding:12px 16px" onclick="refreshParts(true)">Actualizar base</button>
+            <button class="btn btn-secondary" style="padding:12px 16px" onclick="openReport()">Nuevo reporte</button>
+            <button class="btn btn-secondary" style="padding:12px 16px" onclick="openConfig()">Configurar enlaces</button>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- BACKFLUSH -->
+  <div class="overlay" id="modalBackflush" role="dialog" aria-modal="true">
+    <div class="dialog">
+      <div class="dialog-header">
+        <div>
+          <h3>Backflush</h3>
+          <p>Selecciona un área y entra directo a la pantalla correcta.</p>
+        </div>
+        <button class="close" onclick="closeBackflush()" aria-label="Cerrar">×</button>
+      </div>
+
+      <div id="menuAreas" class="dialog-grid">
+        <div class="choices">
+          <button class="choice" onclick="showBackflushSub('Soldadura')"><div class="big">👨‍🏭</div><div class="label">Soldadura</div><div class="sub">Cabinas</div></button>
+          <button class="choice" onclick="showBackflushSub('Láminas')"><div class="big">📏</div><div class="label">Láminas</div><div class="sub">Láser y doblez</div></button>
+          <button class="choice" onclick="openBackflushUrl('467757088')"><div class="big">⚡</div><div class="label">Pintura</div><div class="sub">Acceso directo</div></button>
+          <button class="choice" onclick="showBackflushSub('Coil')"><div class="big">🌀</div><div class="label">Coil</div><div class="sub">Tro / línea</div></button>
+          <button class="choice" onclick="showBackflushSub('Tubo')"><div class="big">🔩</div><div class="label">Tubo</div><div class="sub">Cortadora / dobladora / robot</div></button>
+        </div>
+      </div>
+
+      <div id="backflushSubArea" class="dialog-grid hidden">
+        <div class="card">
+          <h4 id="backflushTitle">Selecciona estación</h4>
+          <div class="choices" id="backflushChoices"></div>
+        </div>
+        <button class="btn btn-secondary" onclick="backToBackflushAreas()">Volver</button>
+      </div>
+
+      <div id="menuSoldadura" class="dialog-grid hidden">
+        <div class="choices" style="grid-template-columns:repeat(4,1fr)">
+          <button class="choice" onclick="openBackflushUrl('474463981')"><div class="big">1</div><div class="label">Cabina</div></button>
+          <button class="choice" onclick="openBackflushUrl('691875183')"><div class="big">2</div><div class="label">Cabina</div></button>
+          <button class="choice" onclick="openBackflushUrl('833456428')"><div class="big">3</div><div class="label">Cabina</div></button>
+          <button class="choice" onclick="openBackflushUrl('2122961992')"><div class="big">4</div><div class="label">Cabina</div></button>
+          <button class="choice" onclick="openBackflushUrl('1669155652')"><div class="big">5</div><div class="label">Cabina</div></button>
+          <button class="choice" onclick="openBackflushUrl('1968404069')"><div class="big">6</div><div class="label">Cabina</div></button>
+          <button class="choice" onclick="openBackflushUrl('58960517')"><div class="big">7</div><div class="label">Cabina</div></button>
+          <button class="choice" onclick="openBackflushUrl('239594534')"><div class="big">8</div><div class="label">Cabina</div></button>
+        </div>
+        <button class="btn btn-secondary" onclick="backToBackflushAreas()">Volver</button>
+      </div>
+
+      <div id="menuLaminas" class="dialog-grid hidden">
+        <div class="choices">
+          <button class="choice" onclick="openBackflushUrl('942696484')"><div class="big">🎯</div><div class="label">Laser</div></button>
+          <button class="choice" onclick="openBackflushUrl('1372641121')"><div class="big">📐</div><div class="label">Doblez</div></button>
+        </div>
+        <button class="btn btn-secondary" onclick="backToBackflushAreas()">Volver</button>
+      </div>
+
+      <div id="menuCoil" class="dialog-grid hidden">
+        <div class="choices">
+          <button class="choice" onclick="openBackflushUrl('1605835610')"><div class="big">TRO</div></button>
+          <button class="choice" onclick="openBackflushUrl('239669647')"><div class="big">LÍNEA</div></button>
+        </div>
+        <button class="btn btn-secondary" onclick="backToBackflushAreas()">Volver</button>
+      </div>
+
+      <div id="menuTubo" class="dialog-grid hidden">
+        <div class="choices">
+          <button class="choice" onclick="openBackflushUrl('235882910')"><div class="big">✂️</div><div class="label">Cortadora</div></button>
+          <button class="choice" onclick="openBackflushUrl('555970497')"><div class="big">↪️</div><div class="label">Dobladora</div></button>
+          <button class="choice" onclick="openBackflushUrl('826835015')"><div class="big">🤖</div><div class="label">Robot</div></button>
+        </div>
+        <button class="btn btn-secondary" onclick="backToBackflushAreas()">Volver</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORT -->
+  <div class="overlay" id="modalReport" role="dialog" aria-modal="true">
+    <div class="dialog">
+      <div class="dialog-header">
+        <div>
+          <h3>Reportar problema</h3>
+          <p>Flujo rápido, sin teclado físico, con subárea por estación y envío directo a Forms.</p>
+        </div>
+        <button class="close" onclick="closeReport()" aria-label="Cerrar">×</button>
+      </div>
+
+      <div class="dialog-grid">
+        <div class="stepper">
+          <div class="step on" id="s1">1. Tipo</div>
+          <div class="step" id="s2">2. Área</div>
+          <div class="step" id="s3">3. Estación</div>
+          <div class="step" id="s4">4. Problema</div>
+          <div class="step" id="s5">5. Datos</div>
+        </div>
+
+        <div id="reportStep1" class="dialog-grid">
+          <div class="choices" style="grid-template-columns:repeat(3,1fr)">
+            <button class="choice" onclick="setReportType('Visual Factory')"><div class="big">🖥️</div><div class="label">Visual Factory</div><div class="sub">Pantallas / kioscos</div></button>
+            <button class="choice" onclick="setReportType('Computadora')"><div class="big">💻</div><div class="label">Computadora</div><div class="sub">PC / terminal</div></button>
+            <button class="choice" onclick="setReportType('Red / Internet')"><div class="big">🌐</div><div class="label">Red / Internet</div><div class="sub">Conectividad</div></button>
+          </div>
+        </div>
+
+        <div id="reportStep2" class="dialog-grid hidden">
+          <div class="card">
+            <h4>Selecciona área</h4>
+            <div class="choices" id="areaChoices" style="grid-template-columns:repeat(2,1fr)"></div>
+          </div>
+          <button class="btn btn-secondary" onclick="goReportBack(1)">Volver</button>
+        </div>
+
+        <div id="reportStep3" class="dialog-grid hidden">
+          <div class="card">
+            <h4 id="stationHeading">Selecciona estación / cabina</h4>
+            <div class="choices" id="stationChoices" style="grid-template-columns:repeat(3,1fr)"></div>
+            <p class="hint" id="stationHint" style="margin-top:10px">Elige el punto específico del área.</p>
+          </div>
+          <button class="btn btn-secondary" onclick="goReportBack(2)">Volver</button>
+        </div>
+
+        <div id="reportStep4" class="dialog-grid hidden">
+          <div class="card">
+            <h4 id="problemHeading">Problemas disponibles</h4>
+            <div class="choices" id="problemChoices"></div>
+            <p class="hint" id="problemHint">Primero elige el tipo para cargar los problemas correctos.</p>
+          </div>
+          <button class="btn btn-secondary" onclick="goReportBack(3)">Volver</button>
+        </div>
+
+        <div id="reportStep5" class="report-layout hidden">
+          <div class="report-grid">
+            <div class="report-stack">
+              <div class="report-card report-card-part" id="partSection">
+                <div class="report-head">
+                  <div class="step-badge">1</div>
+                  <div class="report-title-wrap">
+                    <h4>Número de parte</h4>
+                    <p class="report-sub">Busca en vivo y elige la coincidencia correcta. Solo aplica para Visual Factory.</p>
+                  </div>
+                </div>
+                <div class="field-shell">
+                  <div class="field-icon" onclick="openPartsSheet()" title="Abrir hoja de partes">🔎</div>
+                  <input class="input-part mono" id="parteInput" placeholder="Ej. 1.234-567.8" autocomplete="off" />
+                  <button class="btn btn-secondary" onclick="clearPart()">Limpiar</button>
+                </div>
+                <div class="part-results" id="partResults"></div>
+                <p class="hint" id="partHint" style="margin-top:10px">Elige un resultado o usa el teclado de abajo.</p>
+              </div>
+
+              <div class="report-card report-card-keypad">
+                <div class="keypad-top">
+                  <div class="report-head" style="margin:0">
+                    <div class="step-badge">3</div>
+                    <div class="report-title-wrap">
+                      <h4>Teclado numérico</h4>
+                      <p class="report-sub">Toca el campo activo y luego presiona los números. ⌫ borra, C limpia.</p>
+                    </div>
+                  </div>
+                  <div class="pillbar">
+                    <button class="pill sel" id="targetPartBtn" onclick="setNumericTarget('part')">Parte</button>
+                    <button class="pill" id="targetEmployeeBtn" onclick="setNumericTarget('employee')">Empleado</button>
+                  </div>
+                </div>
+
+                <div class="value-panel">
+                  <div class="value-box">
+                    <div class="value-label">Valor actual</div>
+                    <div class="value-main mono" id="liveDisplay">0.000-000.0</div>
+                    <div class="value-hint" id="liveTargetHint">Parte activa</div>
+                  </div>
+                  <div class="help-box">
+                    <div class="value-label">Atajo</div>
+                    <div style="font-size:2rem;font-weight:1000;line-height:1;">⌨️</div>
+                    <div class="small">Mantén el flujo rápido y evita escribir con teclado físico.</div>
+                  </div>
+                </div>
+
+                <div class="pad-grid" style="max-width:540px;margin:0 auto;">
+                  <button class="pad-key" onclick="padPress('1')">1</button>
+                  <button class="pad-key" onclick="padPress('2')">2</button>
+                  <button class="pad-key" onclick="padPress('3')">3</button>
+                  <button class="pad-key" onclick="padPress('4')">4</button>
+                  <button class="pad-key" onclick="padPress('5')">5</button>
+                  <button class="pad-key" onclick="padPress('6')">6</button>
+                  <button class="pad-key" onclick="padPress('7')">7</button>
+                  <button class="pad-key" onclick="padPress('8')">8</button>
+                  <button class="pad-key" onclick="padPress('9')">9</button>
+                  <button class="pad-key warn" onclick="padBackspace()">⌫</button>
+                  <button class="pad-key" onclick="padPress('0')">0</button>
+                  <button class="pad-key warn" onclick="padClear()">C</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="report-stack">
+              <div class="report-card report-card-employee">
+                <div class="report-head">
+                  <div class="step-badge">2</div>
+                  <div class="report-title-wrap">
+                    <h4>ID de empleado</h4>
+                    <p class="report-sub">Captura rápida para trazabilidad del reporte.</p>
+                  </div>
+                </div>
+                <div class="field-shell">
+                  <div class="field-icon">👷</div>
+                  <input class="input-employee mono" id="employeeInput" placeholder="4940" inputmode="numeric" maxlength="5" />
+                  <button class="btn btn-secondary" onclick="clearEmployee()">Limpiar</button>
+                </div>
+                <div class="live-mini">
+                  <span class="label-pill">Máx. 5 dígitos</span>
+                  <span>Se manda junto con el reporte</span>
+                </div>
+              </div>
+
+              <div class="report-card report-card-severity">
+                <div class="report-head">
+                  <div class="step-badge">4</div>
+                  <div class="report-title-wrap">
+                    <h4>Severidad</h4>
+                    <p class="report-sub">Selecciona qué tan urgente es el problema.</p>
+                  </div>
+                </div>
+                <div class="severity-grid" id="severityGrid">
+                  <button class="sev sev-low active" data-severity="Baja" onclick="setSeverity('Baja', this)">Baja</button>
+                  <button class="sev sev-med" data-severity="Media" onclick="setSeverity('Media', this)">Media</button>
+                  <button class="sev sev-high" data-severity="Alta" onclick="setSeverity('Alta', this)">Alta</button>
+                  <button class="sev sev-crit" data-severity="Crítica" onclick="setSeverity('Crítica', this)">Crítica</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="report-card report-card-summary">
+            <div class="report-head">
+              <div class="step-badge">5</div>
+              <div class="report-title-wrap">
+                <h4>Resumen y envío</h4>
+                <p class="report-sub">Revisa rápido antes de enviar el reporte al Form.</p>
+              </div>
+            </div>
+            <div class="summary-box">
+              <div class="summary" id="reportSummary">Aún no se ha seleccionado información.</div>
+              <div class="submit-row">
+                <button class="btn btn-secondary" onclick="goReportBack(4)">Volver</button>
+                <button class="btn btn-primary" onclick="submitReport()">Enviar reporte</button>
+              </div>
+              <p class="small" style="margin-top:10px">Si no hay internet, se guarda en cola y se reintenta después.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIG -->
+  <div class="overlay" id="modalConfig" role="dialog" aria-modal="true">
+    <div class="dialog">
+      <div class="dialog-header">
+        <div>
+          <h3>Configuración de conexión</h3>
+          <p>Pega aquí la URL del Form, el CSV de partes y los entry IDs que quieras guardar.</p>
+        </div>
+        <button class="close" onclick="closeConfig()" aria-label="Cerrar">×</button>
+      </div>
+
+      <div class="modal-config-grid">
+        <div class="card">
+          <h4>Google Form / Sheets</h4>
+          <div class="modal-row">
+            <input class="input" id="cfgFormAction" placeholder="URL formResponse del Google Form">
+            <input class="input" id="cfgPartsCsvUrl" placeholder="URL CSV publicado de números de parte">
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>Entry IDs del Form</h4>
+          <div class="modal-row-3">
+            <input class="input mono" id="cfgEntryStation" placeholder="ID CABINA / ESTACION">
+            <input class="input mono" id="cfgEntryProblem" placeholder="ID PROBLEMA">
+            <input class="input mono" id="cfgEntrySeverity" placeholder="ID SEVERIDAD">
+          </div>
+          <div style="height:10px"></div>
+          <div class="modal-row-3">
+            <input class="input mono" id="cfgEntryPart" placeholder="ID NUMERO DE PARTE">
+            <input class="input mono" id="cfgEntryEmployee" placeholder="ID EMPLEADO">
+            <input class="input mono" id="cfgEntryNotes" placeholder="ID NOTAS (opcional)">
+          </div>
+          <p class="hint" style="margin-top:10px">Si dejas vacíos los campos opcionales, el sistema solo manda los campos principales.</p>
+        </div>
+
+        <div class="modal-row">
+          <button class="btn btn-secondary" onclick="resetConfig()">Restaurar por defecto</button>
+          <button class="btn btn-primary" onclick="saveConfig()">Guardar configuración</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toasts"></div>
+  <iframe class="hidden-iframe" name="hiddenSink" id="hiddenSink"></iframe>
+
+  <script>
+    const LINKS = {
+      vscreen: 'https://vf-live.akad.kaercher.com/screen#/identify-person',
+      ordenes: 'https://docs.google.com/spreadsheets/d/1lFOd7wbC0kfFOIQJtE_mnXf2z_gkXHsDIu9zwC_NWm0/edit',
+      revisiones: 'https://docs.google.com/spreadsheets/d/1T7v7J3oNAVSkI4f29bvhBsKVowl7N1KZNCKtzFut_KE/edit',
+      partsSheet: 'https://docs.google.com/spreadsheets/d/1tc8fvYkVAnzIvSv3hFaXthqczBP1HYiC/edit?gid=2013509498#gid=2013509498',
+      backflushBase: 'https://docs.google.com/spreadsheets/d/1WO2kcH0JH4vzA734A6FMgHn6gDxuRePjjKhIMHSAGVE/edit?gid='
+    };
+
+    const DEFAULT_CFG = {
+      formAction: 'https://docs.google.com/forms/d/e/1FAIpQLSd68dm23bF0pOXDH7xMUSSxHTxhhktB7GAArKN9BPv7rKcnag/formResponse',
+      entries: {
+        station: '1177880706',
+        problem: '47548739',
+        severity: '1347445718',
+        part: '1378538027',
+        employee: '895926138',
+        notes: ''
+      },
+      partsCsvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQDAlKs_fVuo6d7afegE-9otzoFyS3sdQa_Y9tYoFGCA0CmnnfkgZf1TS1W0I3qfjWxnVGzL710PG_n/pub?gid=0&output=csv',
+      kioskName: 'Control FAB',
+      fallbackParts: [
+        { part:'1.234-567.8', desc:'Base motor', area:'Soldadura' },
+        { part:'0.123-456.7', desc:'Panel frontal', area:'Láminas' },
+        { part:'2.111-004.0', desc:'Soporte de eje', area:'Tubo' },
+        { part:'4.500-001.0', desc:'Cubierta', area:'Pintura' },
+        { part:'5.120-800.4', desc:'Placa guía', area:'General' },
+        { part:'3.901-200.1', desc:'Arnés principal', area:'Coil' }
+      ]
+    };
+
+    const PROBLEMS = {
+      'Visual Factory': [
+        'No aparece en Visual',
+        'No hay dibujo',
+        'Número de parte incorrecto',
+        'Múltiples números de parte',
+        'Otro'
+      ],
+      'Computadora': [
+        'Computadora no enciende',
+        'Computadora lenta / bloqueada',
+        'Error en sistema',
+        'Otro'
+      ],
+      'Red / Internet': [
+        'No hay internet en área de trabajo',
+        'Señal intermitente',
+        'Otro'
+      ]
+    };
+
+    const AREAS = ['Soldadura','Láminas','Pintura','Coil','Tubo','General'];
+
+    const SUBAREAS = {
+      'Soldadura': ['Cabina 1','Cabina 2','Cabina 3','Cabina 4','Cabina 5','Cabina 6','Cabina 7','Cabina 8'],
+      'Láminas': ['Laser','Doblez'],
+      'Pintura': ['General'],
+      'Coil': ['TRO','Línea'],
+      'Tubo': ['Cortadora','Dobladora','Robot'],
+      'General': ['General']
+    };
+
+    const $ = (s, root=document) => root.querySelector(s);
+    const $$ = (s, root=document) => Array.from(root.querySelectorAll(s));
+
+    const state = {
+      slide: 0,
+      autoplay: null,
+      online: navigator.onLine,
+      queue: JSON.parse(localStorage.getItem('fab_report_queue') || '[]'),
+      parts: [],
+      target: 'part',
+      partDigits: '',
+      employeeDigits: '',
+      reportStep: 0,
+      report: {
+        type: '',
+        area: '',
+        subarea: '',
+        problem: '',
+        part: '',
+        employee: '',
+        severity: 'Baja'
+      },
+      cfg: loadCfg()
+    };
+
+    function loadCfg(){
+      const saved = JSON.parse(localStorage.getItem('fab_cfg') || 'null');
+      return {
+        ...DEFAULT_CFG,
+        ...(saved || {}),
+        entries: {
+          ...DEFAULT_CFG.entries,
+          ...((saved && saved.entries) || {})
+        }
+      };
+    }
+
+    function saveCfgToStorage(){
+      localStorage.setItem('fab_cfg', JSON.stringify(state.cfg));
+    }
+
+    function toast(title, kind='info', detail='') {
+      const wrap = $('#toasts');
+      const el = document.createElement('div');
+      el.className = `toast ${kind === 'good' ? 'good' : kind === 'bad' ? 'bad' : ''}`;
+      el.innerHTML = `<strong>${title}</strong>${detail ? `<small>${detail}</small>` : ''}`;
+      wrap.appendChild(el);
+      setTimeout(() => { el.style.opacity='0'; el.style.transform='translateY(8px)'; }, 3000);
+      setTimeout(() => el.remove(), 3600);
+    }
+
+    function setConnUI() {
+      $('#connDot').className = `dot ${state.online ? 'ok' : 'bad'}`;
+      $('#connText').textContent = state.online ? 'Conectado' : 'Sin conexión';
+      $('#queueText').textContent = `${state.queue.length} reportes pendientes`;
+    }
+
+    window.addEventListener('online', () => { state.online = true; setConnUI(); toast('Conexión restaurada', 'good'); flushQueue(); });
+    window.addEventListener('offline', () => { state.online = false; setConnUI(); toast('Sin conexión', 'bad', 'Los reportes se guardarán en cola.'); });
+
+    function clock(){
+      const now = new Date();
+      $('#full-date').textContent = now.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+      $('#clock').textContent = now.toLocaleTimeString('es-ES');
+    }
+    setInterval(clock, 1000); clock();
+
+    function goLink(key){
+      const url = LINKS[key];
+      if (url) window.open(url, '_blank', 'noopener');
+    }
+
+    function openPartsSheet(){
+      window.open(LINKS.partsSheet, '_blank', 'noopener');
+    }
+
+    // Carousel stable
+    const slides = $$('.slide');
+    function renderCarousel(){
+      $('#track').style.transform = `translateX(${-100 * state.slide}%)`;
+      $('#progress').style.width = '0%';
+      requestAnimationFrame(() => {
+        $('#progress').style.transition = 'width 6500ms linear';
+        $('#progress').style.width = '100%';
+      });
+    }
+    function nextSlide(){
+      state.slide = (state.slide + 1) % slides.length;
+      renderCarousel();
+    }
+    function prevSlide(){
+      state.slide = (state.slide - 1 + slides.length) % slides.length;
+      renderCarousel();
+    }
+    function restartAutoplay(){
+      clearInterval(state.autoplay);
+      state.autoplay = setInterval(nextSlide, 6500);
+      renderCarousel();
+    }
+    $('#nextBtn').onclick = () => { nextSlide(); restartAutoplay(); };
+    $('#prevBtn').onclick = () => { prevSlide(); restartAutoplay(); };
+    state.autoplay = setInterval(nextSlide, 6500);
+    renderCarousel();
+
+    // Backflush
+    function openBackflush(){
+      $('#modalBackflush').style.display = 'flex';
+      backToBackflushAreas();
+    }
+    function closeBackflush(){ $('#modalBackflush').style.display = 'none'; }
+    function backToBackflushAreas(){
+      ['menuAreas','backflushSubArea','menuSoldadura','menuLaminas','menuCoil','menuTubo'].forEach(id => $('#'+id).classList.add('hidden'));
+      $('#menuAreas').classList.remove('hidden');
+    }
+    function showBackflushSub(area){
+      ['menuAreas','backflushSubArea','menuSoldadura','menuLaminas','menuCoil','menuTubo'].forEach(id => $('#'+id).classList.add('hidden'));
+      $('#backflushSubArea').classList.remove('hidden');
+      const box = $('#backflushChoices');
+      const title = $('#backflushTitle');
+      box.innerHTML = '';
+      const subareas = SUBAREAS[area] || ['General'];
+      title.textContent = `Selecciona estación de ${area}`;
+      subareas.forEach((sub, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'choice';
+        btn.innerHTML = `<div class="big">🏭</div><div class="label">${sub}</div><div class="sub">${area}</div>`;
+        btn.onclick = () => {
+          const full = `${area} - ${sub}`;
+          openBackflushUrl(area === 'Pintura' ? '467757088' : (area === 'Soldadura' ? ['474463981','691875183','833456428','2122961992','1669155652','1968404069','58960517','239594534'][idx] : '467757088'));
+          toast('Selección de backflush', 'good', full);
+        };
+        box.appendChild(btn);
+      });
+    }
+    function openBackflushUrl(gid){
+      const url = `${LINKS.backflushBase}${gid}`;
+      window.open(url, '_blank', 'noopener');
+      closeBackflush();
+    }
+    $('#modalBackflush').addEventListener('click', e => { if (e.target.id === 'modalBackflush') closeBackflush(); });
+
+    // Report modal
+    const reportSteps = ['reportStep1','reportStep2','reportStep3','reportStep4','reportStep5'];
+
+    function openReport(){
+      $('#modalReport').style.display = 'flex';
+      resetReport();
+      refreshParts(false);
+      updateConfigBadge();
+      renderTypeStep();
+      stepTo(0);
+    }
+    function closeReport(){ $('#modalReport').style.display = 'none'; }
+
+    function resetReport(){
+      state.report = { type:'', area:'', subarea:'', problem:'', part:'', employee:'', severity:'Baja' };
+      state.partDigits = '';
+      state.employeeDigits = '';
+      state.target = 'part';
+      state.reportStep = 0;
+      $('#parteInput').value = '';
+      $('#employeeInput').value = '';
+      $('#severityGrid').querySelectorAll('.sev').forEach(btn => {
+        btn.classList.remove('inactive');
+      });
+      $('#partResults').innerHTML = '';
+      $('#reportSummary').textContent = 'Aún no se ha seleccionado información.';
+      $('#liveDisplay').textContent = '0.000-000.0';
+      $('#liveTargetHint').textContent = 'Parte activa';
+      $('#targetPartBtn').classList.add('sel');
+      $('#targetEmployeeBtn').classList.remove('sel');
+      $('#problemChoices').innerHTML = '';
+      $('#stationChoices').innerHTML = '';
+      $('#areaChoices').innerHTML = '';
+      renderSeverityButtons();
+      updateSummary();
+    }
+
+    function stepTo(n){
+      state.reportStep = n;
+      reportSteps.forEach((id, idx) => $('#'+id).classList.toggle('hidden', idx !== n));
+      $$('.step').forEach((el, idx) => el.classList.toggle('on', idx === n));
+      if (n === 1) renderAreaStep();
+      if (n === 2) renderStationStep();
+      if (n === 3) renderProblemStep();
+      if (n === 4) renderDataStep();
+    }
+    function goReportBack(stepIndex){
+      stepTo(stepIndex - 1);
+    }
+
+    function setReportType(type){
+      state.report.type = type;
+      renderAreaStep();
+      stepTo(1);
+      updateSummary();
+    }
+
+    function renderAreaStep(){
+      const box = $('#areaChoices');
+      box.innerHTML = '';
+      AREAS.forEach(area => {
+        const btn = document.createElement('button');
+        btn.className = 'choice';
+        btn.innerHTML = `<div class="big">${areaIcon(area)}</div><div class="label">${area}</div><div class="sub">Seleccionar área</div>`;
+        btn.onclick = () => setReportArea(area);
+        box.appendChild(btn);
+      });
+    }
+
+    function setReportArea(area){
+      state.report.area = area;
+      state.report.subarea = '';
+      renderStationStep();
+      const subs = SUBAREAS[area] || ['General'];
+      if (subs.length === 1){
+        state.report.subarea = subs[0];
+        renderProblemStep();
+        stepTo(3);
+      } else {
+        stepTo(2);
+      }
+      updateSummary();
+    }
+
+    function renderStationStep(){
+      const area = state.report.area;
+      const subs = SUBAREAS[area] || ['General'];
+      const box = $('#stationChoices');
+      box.innerHTML = '';
+      $('#stationHeading').textContent = `Selecciona estación / cabina de ${area || '—'}`;
+      $('#stationHint').textContent = 'Elige el punto específico del área.';
+      subs.forEach(sub => {
+        const btn = document.createElement('button');
+        btn.className = 'choice';
+        btn.innerHTML = `<div class="big">🏭</div><div class="label">${sub}</div><div class="sub">${area}</div>`;
+        btn.onclick = () => setSubarea(sub);
+        box.appendChild(btn);
+      });
+    }
+
+    function setSubarea(sub){
+      state.report.subarea = sub;
+      renderProblemStep();
+      stepTo(3);
+      updateSummary();
+    }
+
+    function renderProblemStep(){
+      const list = PROBLEMS[state.report.type] || [];
+      const box = $('#problemChoices');
+      box.innerHTML = '';
+      $('#problemHeading').textContent = `Problemas para ${state.report.type || '—'}`;
+      $('#problemHint').textContent = state.report.type === 'Visual Factory'
+        ? 'Estos problemas sí requieren número de parte.'
+        : 'Estos problemas no requieren número de parte.';
+      list.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'choice';
+        btn.innerHTML = `<div class="big">${state.report.type === 'Red / Internet' ? '🌐' : '⚠️'}</div><div class="label">${p}</div>`;
+        btn.onclick = () => setProblem(p);
+        box.appendChild(btn);
+      });
+    }
+
+    function setProblem(problem){
+      state.report.problem = problem;
+      renderDataStep();
+      stepTo(4);
+      updateSummary();
+    }
+
+    function renderDataStep(){
+      updatePartVisibility();
+      updateSummary();
+    }
+
+    function areaIcon(area){
+      const map = { 'Soldadura':'👨‍🏭', 'Láminas':'📏', 'Pintura':'⚡', 'Coil':'🌀', 'Tubo':'🔩', 'General':'📦' };
+      return map[area] || '📦';
+    }
+
+    function updatePartVisibility(){
+      const showPart = state.report.type === 'Visual Factory';
+      $('#partSection').style.display = showPart ? 'block' : 'none';
+      $('#targetPartBtn').style.display = showPart ? 'inline-flex' : 'none';
+      if (!showPart){
+        state.target = 'employee';
+        $('#targetPartBtn').classList.remove('sel');
+        $('#targetEmployeeBtn').classList.add('sel');
+        $('#liveTargetHint').textContent = 'Empleado activo';
+        $('#liveDisplay').textContent = state.employeeDigits || '00000';
+      } else {
+        if (state.target !== 'part' && state.target !== 'employee') state.target = 'part';
+      }
+    }
+
+    function setNumericTarget(target){
+      state.target = target;
+      $('#targetPartBtn').classList.toggle('sel', target === 'part');
+      $('#targetEmployeeBtn').classList.toggle('sel', target === 'employee');
+      syncLiveDisplay();
+    }
+
+    function syncLiveDisplay(){
+      if (state.target === 'part' && state.report.type === 'Visual Factory'){
+        $('#liveDisplay').textContent = state.partDigits ? formatPart(state.partDigits) : '0.000-000.0';
+        $('#liveTargetHint').textContent = 'Parte activa';
+      } else {
+        $('#liveDisplay').textContent = state.employeeDigits || '00000';
+        $('#liveTargetHint').textContent = 'Empleado activo';
+      }
+    }
+
+    function clearPart(){
+      state.partDigits = '';
+      state.report.part = '';
+      $('#parteInput').value = '';
+      $('#partResults').innerHTML = '';
+      syncLiveDisplay();
+      updateSummary();
+    }
+    function clearEmployee(){
+      state.employeeDigits = '';
+      state.report.employee = '';
+      $('#employeeInput').value = '';
+      syncLiveDisplay();
+      updateSummary();
+    }
+
+    function formatPart(digits){
+      const d = String(digits).replace(/\D/g,'').slice(0,8);
+      if (!d) return '0.000-000.0';
+      const padded = d.padEnd(8, '_');
+      const a = padded.slice(0,1), b = padded.slice(1,4), c = padded.slice(4,7), e = padded.slice(7,8);
+      return `${a}.${b}-${c}.${e}`.replace(/_/g,'');
+    }
+
+    function padPress(d){
+      if (state.target === 'part' && state.report.type === 'Visual Factory'){
+        if (state.partDigits.length >= 8) return;
+        state.partDigits += String(d);
+        state.report.part = formatPart(state.partDigits);
+        $('#parteInput').value = state.report.part;
+        renderPartResults();
+      } else {
+        if (state.employeeDigits.length >= 5) return;
+        state.employeeDigits += String(d);
+        state.report.employee = state.employeeDigits;
+        $('#employeeInput').value = state.employeeDigits;
+      }
+      syncLiveDisplay();
+      updateSummary();
+    }
+    function padBackspace(){
+      if (state.target === 'part' && state.report.type === 'Visual Factory'){
+        state.partDigits = state.partDigits.slice(0,-1);
+        state.report.part = state.partDigits ? formatPart(state.partDigits) : '';
+        $('#parteInput').value = state.report.part;
+        renderPartResults();
+      } else {
+        state.employeeDigits = state.employeeDigits.slice(0,-1);
+        state.report.employee = state.employeeDigits;
+        $('#employeeInput').value = state.employeeDigits;
+      }
+      syncLiveDisplay();
+      updateSummary();
+    }
+    function padClear(){
+      if (state.target === 'part' && state.report.type === 'Visual Factory') clearPart();
+      else clearEmployee();
+    }
+
+    $('#employeeInput').addEventListener('input', e => {
+      const v = e.target.value.replace(/\D/g,'').slice(0,5);
+      e.target.value = v;
+      state.employeeDigits = v;
+      state.report.employee = v;
+      updateSummary();
+    });
+
+    $('#parteInput').addEventListener('input', () => {
+      const value = $('#parteInput').value.trim();
+      state.partDigits = value.replace(/\D/g,'').slice(0,8);
+      state.report.part = value;
+      renderPartResults();
+      syncLiveDisplay();
+      updateSummary();
+    });
+
+    function setSeverity(val, el){
+      state.report.severity = val;
+      $$('.sev').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.add('inactive');
+      });
+      el.classList.add('active');
+      el.classList.remove('inactive');
+      updateSummary();
+    }
+
+    function renderSeverityButtons(){
+      $$('.sev').forEach(btn => {
+        const isActive = btn.dataset.severity === state.report.severity;
+        btn.classList.toggle('active', isActive);
+        btn.classList.toggle('inactive', !isActive);
+      });
+    }
+
+    function updateSummary(){
+      const r = state.report;
+      const stationFull = r.area
+        ? (r.subarea ? `${r.area} - ${r.subarea}` : r.area)
+        : '—';
+      $('#reportSummary').innerHTML = `
+        <b>Tipo:</b> ${r.type || '—'}<br>
+        <b>Área:</b> ${r.area || '—'}<br>
+        <b>Estación / Cabina:</b> ${r.subarea || '—'}<br>
+        <b>Problema:</b> ${r.problem || '—'}<br>
+        <b>Número de parte:</b> ${r.type === 'Visual Factory' ? (r.part || '—') : 'No requerido'}<br>
+        <b>ID empleado:</b> ${r.employee || '—'}<br>
+        <b>Severidad:</b> ${r.severity || 'Baja'}<br>
+        <b>Enviado como:</b> ${stationFull}
+      `;
+    }
+
+    function validateReport(){
+      const r = state.report;
+      if (!r.type) return 'Selecciona el tipo';
+      if (!r.area) return 'Selecciona el área';
+      if (!r.subarea) return 'Selecciona la estación / cabina';
+      if (!r.problem) return 'Selecciona el problema';
+      if (!r.employee) return 'Captura el ID de empleado';
+      if (r.type === 'Visual Factory' && !r.part) return 'Captura el número de parte';
+      return '';
+    }
+
+    function queuePayload(payload){
+      state.queue.push(payload);
+      localStorage.setItem('fab_report_queue', JSON.stringify(state.queue));
+      setConnUI();
+    }
+
+    function buildPayload(){
+      const stationFull = state.report.area
+        ? `${state.report.area} - ${state.report.subarea || ''}`.replace(/\s-\s$/, '')
+        : '';
+      return {
+        timestamp: new Date().toISOString(),
+        kioskName: state.cfg.kioskName,
+        page: location.href,
+        userAgent: navigator.userAgent,
+        type: state.report.type,
+        area: state.report.area,
+        subarea: state.report.subarea,
+        stationFull,
+        problem: state.report.problem,
+        part: state.report.part,
+        employee: state.report.employee,
+        severity: state.report.severity,
+        notes: `Tipo: ${state.report.type} | Área: ${state.report.area} | Estación/Cabina: ${state.report.subarea} | Problema: ${state.report.problem} | Parte: ${state.report.part || '—'} | Empleado: ${state.report.employee || '—'} | Severidad: ${state.report.severity}`
+      };
+    }
+
+    function appendField(form, name, value){
+      if (value === undefined || value === null) return;
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = String(value);
+      form.appendChild(input);
+    }
+
+    function sendPayloadViaForm(payload){
+      if (!state.cfg.formAction || state.cfg.formAction.includes('PEGA_AQUI')) return false;
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = state.cfg.formAction;
+      form.target = 'hiddenSink';
+      form.style.display = 'none';
+
+      const e = state.cfg.entries;
+      appendField(form, `entry.${e.employee}`, payload.employee || '');
+      appendField(form, `entry.${e.station}`, payload.stationFull || payload.area || '');
+      appendField(form, `entry.${e.problem}`, payload.problem || '');
+      appendField(form, `entry.${e.part}`, payload.part || '');
+      appendField(form, `entry.${e.severity}`, payload.severity || 'Baja');
+      if (e.notes) appendField(form, `entry.${e.notes}`, payload.notes || '');
+
+      document.body.appendChild(form);
+      form.submit();
+      setTimeout(() => form.remove(), 1200);
+      return true;
+    }
+
+    async function flushQueue(){
+      if (!state.queue.length) return;
+      if (!state.cfg.formAction || state.cfg.formAction.includes('PEGA_AQUI')) return;
+      const pending = [...state.queue];
+      state.queue = [];
+      localStorage.setItem('fab_report_queue', JSON.stringify(state.queue));
+      setConnUI();
+      pending.forEach(p => sendPayloadViaForm(p));
+      toast('Cola enviada a Sheets', 'good');
+      closeReport();
+    }
+
+    
+function submitReport(){
+      const err = validateReport();
+      if (err) return toast(err, 'bad');
+
+      const stationFull = state.report.area
+        ? (state.report.subarea ? `${state.report.area} - ${state.report.subarea}` : state.report.area)
+        : '';
+
+      if (!state.cfg.formAction || state.cfg.formAction.includes('PEGA_AQUI')) {
+        return toast('Falta configurar el Form', 'bad', 'Abre Configurar enlaces.');
+      }
+
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = state.cfg.formAction;
+      form.target = 'hiddenSink';
+      form.style.display = 'none';
+
+      const e = state.cfg.entries;
+      const fields = {
+        [`entry.${e.employee}`]: state.report.employee || '',
+        [`entry.${e.station}`]: stationFull || '',
+        [`entry.${e.problem}`]: state.report.problem || '',
+        [`entry.${e.part}`]: state.report.type === 'Visual Factory' ? (state.report.part || '') : '',
+        [`entry.${e.severity}`]: state.report.severity || 'Baja'
+      };
+
+      Object.entries(fields).forEach(([name, value]) => {
+        if (!name.includes('undefined')) {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = name;
+          input.value = String(value);
+          form.appendChild(input);
+        }
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+      setTimeout(() => form.remove(), 1200);
+
+      toast('Reporte enviado', 'good');
+      state.queue = [];
+      localStorage.setItem('fab_report_queue', JSON.stringify(state.queue));
+      setConnUI();
+      resetReport();
+      closeReport();
+    }
+
+    function renderPartResults() {
+      const q = $('#parteInput').value.trim().toLowerCase();
+      const qDigits = q.replace(/\D/g,'').slice(0,8);
+      const box = $('#partResults');
+      box.innerHTML = '';
+      if (state.report.type !== 'Visual Factory') return;
+      if (!q && !state.partDigits) return;
+
+      const list = state.parts.length ? state.parts : state.cfg.fallbackParts;
+      const matches = list.filter(item => {
+        const part = item.part || item;
+        const txt = (typeof item === 'string' ? item : `${item.part} ${item.desc || ''} ${item.area || ''}`).toLowerCase();
+        const digits = String(part).replace(/\D/g,'');
+        return (qDigits && digits.includes(qDigits)) || (q && txt.includes(q));
+      }).slice(0, 8);
+
+      if (!matches.length){
+        box.innerHTML = '<div class="small" style="padding:8px 4px">Sin coincidencias todavía.</div>';
+        return;
+      }
+
+      matches.forEach(item => {
+        const payload = typeof item === 'string' ? { part:item, desc:'', area:'' } : item;
+        const node = document.createElement('div');
+        node.className = 'result-item';
+        node.innerHTML = `<div><b>${payload.part}</b><small>${payload.desc || 'Seleccionar'}</small></div><small>${payload.area || ''}</small>`;
+        node.onclick = () => selectPart(payload);
+        box.appendChild(node);
+      });
+    }
+
+    function selectPart(item){
+      state.report.part = item.part;
+      state.partDigits = item.part.replace(/\D/g,'').slice(0,8);
+      $('#parteInput').value = item.part;
+      $('#partResults').innerHTML = '';
+      updateSummary();
+      syncLiveDisplay();
+      toast('Número de parte seleccionado', 'good', item.desc || '');
+    }
+
+    $('#modalReport').addEventListener('click', e => { if (e.target.id === 'modalReport') closeReport(); });
+    $('#modalConfig').addEventListener('click', e => { if (e.target.id === 'modalConfig') closeConfig(); });
+
+    function refreshParts(force=false){
+      const url = state.cfg.partsCsvUrl;
+      if (!url || url.includes('PEGA_AQUI')){
+        state.parts = state.cfg.fallbackParts.slice();
+        $('#partsCount').textContent = `${state.parts.length}`;
+        $('#partsText').textContent = 'Base local lista';
+        $('#syncText').textContent = new Date().toLocaleTimeString('es-ES');
+        return;
+      }
+      fetch(url + (force ? (url.includes('?') ? '&' : '?') + 't=' + Date.now() : ''), { cache:'no-store' })
+        .then(r => r.text())
+        .then(text => {
+          state.parts = parseCsvParts(text);
+          $('#partsCount').textContent = `${state.parts.length}`;
+          $('#partsText').textContent = `Base cargada (${state.parts.length})`;
+          $('#syncText').textContent = new Date().toLocaleTimeString('es-ES');
+          toast('Base de partes actualizada', 'good', `${state.parts.length} registros cargados`);
+        })
+        .catch(err => {
+          console.warn(err);
+          state.parts = state.cfg.fallbackParts.slice();
+          $('#partsCount').textContent = `${state.parts.length}`;
+          $('#partsText').textContent = 'Base local (falló CSV)';
+          $('#syncText').textContent = new Date().toLocaleTimeString('es-ES');
+          toast('No se pudo cargar la base CSV', 'bad', 'Usando base local.');
+        });
+    }
+
+    function parseCsvParts(csvText){
+      const rows = csvText.split(/\r?\n/).map(r => r.trim()).filter(Boolean);
+      const out = [];
+      for (const row of rows){
+        const first = row.split(',')[0].replace(/^"|"$/g,'').trim();
+        const low = first.toLowerCase();
+        if (!first || ['numero de parte','parte','part number','partes'].includes(low)) continue;
+        out.push({ part:first, desc:'', area:'' });
+      }
+      return Array.from(new Map(out.map(x => [x.part, x])).values());
+    }
+
+    function loadConfigIntoModal(){
+      $('#cfgFormAction').value = state.cfg.formAction || '';
+      $('#cfgPartsCsvUrl').value = state.cfg.partsCsvUrl || '';
+      $('#cfgEntryStation').value = state.cfg.entries.station || '';
+      $('#cfgEntryProblem').value = state.cfg.entries.problem || '';
+      $('#cfgEntrySeverity').value = state.cfg.entries.severity || '';
+      $('#cfgEntryPart').value = state.cfg.entries.part || '';
+      $('#cfgEntryEmployee').value = state.cfg.entries.employee || '';
+      $('#cfgEntryNotes').value = state.cfg.entries.notes || '';
+    }
+
+    function openConfig(){
+      loadConfigIntoModal();
+      $('#modalConfig').style.display = 'flex';
+    }
+    function closeConfig(){ $('#modalConfig').style.display = 'none'; }
+
+    function saveConfig(){
+      state.cfg.formAction = $('#cfgFormAction').value.trim();
+      state.cfg.partsCsvUrl = $('#cfgPartsCsvUrl').value.trim();
+      state.cfg.entries.station = $('#cfgEntryStation').value.trim();
+      state.cfg.entries.problem = $('#cfgEntryProblem').value.trim();
+      state.cfg.entries.severity = $('#cfgEntrySeverity').value.trim();
+      state.cfg.entries.part = $('#cfgEntryPart').value.trim();
+      state.cfg.entries.employee = $('#cfgEntryEmployee').value.trim();
+      state.cfg.entries.notes = $('#cfgEntryNotes').value.trim();
+      saveCfgToStorage();
+      updateConfigBadge();
+      closeConfig();
+      refreshParts(true);
+      toast('Configuración guardada', 'good');
+    }
+
+    function resetConfig(){
+      localStorage.removeItem('fab_cfg');
+      state.cfg = loadCfg();
+      loadConfigIntoModal();
+      updateConfigBadge();
+      refreshParts(true);
+      toast('Configuración restaurada', 'good');
+    }
+
+    function updateConfigBadge(){
+      const ok = state.cfg.formAction && !state.cfg.formAction.includes('PEGA_AQUI') && state.cfg.entries.station && state.cfg.entries.problem && state.cfg.entries.severity && state.cfg.entries.part && state.cfg.entries.employee;
+      $('#modeText').textContent = ok ? 'Conectado a Form' : 'Config incompleta';
+      $('#configStatus').textContent = ok ? 'Conexión lista' : 'Config incompleta';
+    }
+
+    function renderTypeStep(){
+      // no-op because step1 buttons are static
+    }
+
+    function updateStepper(){
+      $$('.step').forEach((el, idx) => el.classList.toggle('on', idx === state.reportStep));
+    }
+
+    function setSeverityFromInit(){
+      renderSeverityButtons();
+    }
+
+    function renderSeverityButtons(){
+      $$('.sev').forEach(btn => {
+        const active = btn.dataset.severity === state.report.severity;
+        btn.classList.toggle('active', active);
+        btn.classList.toggle('inactive', !active);
+      });
+    }
+
+    // Key buttons / initial states
+    $('#employeeInput').addEventListener('input', e => {
+      const v = e.target.value.replace(/\D/g,'').slice(0,5);
+      e.target.value = v;
+      state.employeeDigits = v;
+      state.report.employee = v;
+      updateSummary();
+    });
+    $('#parteInput').addEventListener('input', () => {
+      const v = $('#parteInput').value.trim();
+      state.partDigits = v.replace(/\D/g,'').slice(0,8);
+      state.report.part = v;
+      renderPartResults();
+      syncLiveDisplay();
+      updateSummary();
+    });
+
+    // keyboard shortcuts
+    window.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { closeReport(); closeBackflush(); closeConfig(); }
+      if (e.key === 'F5') { e.preventDefault(); refreshParts(true); }
+      if (e.ctrlKey && e.key.toLowerCase() === 'r') { e.preventDefault(); refreshParts(true); }
+      if (e.key === 'Enter' && $('#modalReport').style.display === 'flex' && state.reportStep === 4){
+        submitReport();
+      }
+    });
+
+    function init(){
+      setConnUI();
+      updateConfigBadge();
+      refreshParts(false);
+      renderSeverityButtons();
+      renderAreaStep();
+      updateSummary();
+      setSeverity('Baja', $('.sev-low'));
+      // report step hidden until open
+      stepTo(0);
+      $('#reportStep2').classList.add('hidden');
+      $('#reportStep3').classList.add('hidden');
+      $('#reportStep4').classList.add('hidden');
+      $('#reportStep5').classList.add('hidden');
+      $$('.slide').forEach((s, i) => s.querySelector('h2') && null);
+      $('#modalBackflush').style.display='none';
+      $('#modalReport').style.display='none';
+      $('#modalConfig').style.display='none';
+    }
+
+    // expose globals
+    window.goLink = goLink;
+    window.openPartsSheet = openPartsSheet;
+    window.openBackflush = openBackflush;
+    window.closeBackflush = closeBackflush;
+    window.backToBackflushAreas = backToBackflushAreas;
+    window.showBackflushSub = showBackflushSub;
+    window.openBackflushUrl = openBackflushUrl;
+    window.openReport = openReport;
+    window.closeReport = closeReport;
+    window.openConfig = openConfig;
+    window.closeConfig = closeConfig;
+    window.saveConfig = saveConfig;
+    window.resetConfig = resetConfig;
+    window.refreshParts = refreshParts;
+    window.submitReport = submitReport;
+    window.setReportType = setReportType;
+    window.setReportArea = setReportArea;
+    window.setSubarea = setSubarea;
+    window.setProblem = setProblem;
+    window.goReportBack = goReportBack;
+    window.setNumericTarget = setNumericTarget;
+    window.padPress = padPress;
+    window.padBackspace = padBackspace;
+    window.padClear = padClear;
+    window.clearPart = clearPart;
+    window.clearEmployee = clearEmployee;
+    window.setSeverity = setSeverity;
+    window.selectPart = selectPart;
+    window.toast = toast;
+
+    init();
+  </script>
+</body>
+</html>
